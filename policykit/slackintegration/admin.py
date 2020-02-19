@@ -37,3 +37,7 @@ class SlackPinMessageAdmin(admin.ModelAdmin):
     pass
 admin_site.register(SlackPinMessage, SlackPinMessageAdmin)
 
+class SlackCreateChannelAdmin(admin.ModelAdmin):
+	pass
+admin_site.register(SlackCreateChannel, SlackCreateChannelAdmin)
+

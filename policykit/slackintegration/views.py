@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
-from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
+from slackintegration.models import *
 from policyengine.models import ActionPolicy, UserVote, CommunityAction
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
@@ -116,6 +116,16 @@ def action(request):
             new_action.timestamp = event['item']['message']['ts']
             user = event['user']
             new_action.save(user=user)
+
+        elif event.get('type') == 'channel_created':
+            new_action = SlackCreateChannel()
+            new_action.community_integration = integration
+            new_action.author = author
+            new_action.name = event['channel']['name']
+            creator = event['channel']['creator']
+            new_action.user_ids = creator
+            channel_id = event['channel']['id']
+            new_action.save(channel_id=channel_id, creator=creator)
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']

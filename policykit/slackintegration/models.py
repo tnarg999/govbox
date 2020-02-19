@@ -12,7 +12,8 @@ SLACK_ACTIONS = ['slackpostmessage',
                  'slackrenameconversation',
                  'slackkickconversation',
                  'slackjoinconversation',
-                 'slackpinmessage'
+                 'slackpinmessage',
+                 'slackcreatechannel'
                  ]
 
 class SlackIntegration(CommunityIntegration):
@@ -185,6 +186,29 @@ class SlackPinMessage(CommunityAction):
             self.revert()
             self.post_rule()
             super(SlackPinMessage, self).save(*args, **kwargs)
+
+class SlackCreateChannel(CommunityAction):
+    ACTION = 'conversations.create'
+    name = models.CharField('name', max_length=150)
+    user_ids = models.CharField('user ids')
+
+    def revert(self, channel_id):
+        values = {'token': self.community_integration.access_token,
+                  'channel': channel_id
+                }
+        super().revert(values, SlackIntegration.API + 'conversations.close')
+
+    def post_rule(self):
+        values = {'channel': self.channel,
+                  'token': self.community_integration.access_token
+                  }
+        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+    
+    def save(self, channel_id=None, creator=None, *args, **kwargs):
+        if channel_id and creator != 'UTE9MFJJ0':
+            self.revert(channel_id)
+            self.post_rule()
+            super(SlackCreateChannel, self).save(*args, **kwargs)
             
         
         
