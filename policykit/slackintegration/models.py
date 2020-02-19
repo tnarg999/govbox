@@ -196,7 +196,9 @@ class SlackCreateChannel(CommunityAction):
         values = {'token': self.author.access_token,
                   'channel': channel_id
                 }
-        super().revert(values, SlackIntegration.API + 'conversations.close')
+        # no official API endpoint for deleting channel
+        # only unofficial one: https://stackoverflow.com/questions/46807744/delete-channel-in-slack-api
+        super().revert(values, SlackIntegration.API + 'conversations.archive')
 
     def post_rule(self):
         values = {'channel': 'CDD61K9V0', # hard code general channel for now...
