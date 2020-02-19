@@ -190,7 +190,7 @@ class SlackPinMessage(CommunityAction):
 class SlackCreateChannel(CommunityAction):
     ACTION = 'conversations.create'
     name = models.CharField('name', max_length=150)
-    user_ids = models.CharField('user ids')
+    user_ids = models.CharField('user ids', max_length=500)
 
     def revert(self, channel_id):
         values = {'token': self.community_integration.access_token,
