@@ -193,7 +193,7 @@ class SlackCreateChannel(CommunityAction):
     user_ids = models.CharField('user ids', max_length=500)
 
     def revert(self, channel_id):
-        values = {'token': self.community_integration.access_token,
+        values = {'token': self.author.access_token,
                   'channel': channel_id
                 }
         super().revert(values, SlackIntegration.API + 'conversations.close')
