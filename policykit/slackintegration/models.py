@@ -205,7 +205,7 @@ class SlackArchiveChannel(CommunityAction):
         super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, user=None, *args, **kwargs):
-        if channel_id and user != 'UTE9MFJJ0':
+        if user != 'UTE9MFJJ0':
             self.revert()
             self.post_rule()
             super(SlackCreateChannel, self).save(*args, **kwargs)
