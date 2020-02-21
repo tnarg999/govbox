@@ -209,7 +209,7 @@ class SlackArchiveChannel(CommunityAction):
         if user != 'UTE9MFJJ0':
             self.revert()
             self.post_rule()
-            super(SlackCreateChannel, self).save(*args, **kwargs)
+            super(SlackArchiveChannel, self).save(*args, **kwargs)
 
 # TODO: Discuss what to do here
 class SlackCreateChannel(CommunityAction):
