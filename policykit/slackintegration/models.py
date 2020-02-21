@@ -213,13 +213,12 @@ class SlackArchiveChannel(CommunityAction):
 
 # TODO: Discuss what to do here
 class SlackCreateChannel(CommunityAction):
-    ACTION = 'conversations.create'
-    name = models.CharField('name', max_length=150)
-    user_ids = models.CharField('user ids', max_length=500)
+    ACTION = 'conversations.unarchive'
+    channel = models.CharField('channel', max_length=500)
 
-    def revert(self, channel_id):
+    def revert(self):
         values = {'token': self.author.access_token,
-                  'channel': channel_id
+                  'channel': channel
                 }
         # no official API endpoint for deleting channel
         # only unofficial one: https://stackoverflow.com/questions/46807744/delete-channel-in-slack-api
@@ -231,9 +230,9 @@ class SlackCreateChannel(CommunityAction):
                   }
         super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
     
-    def save(self, channel_id=None, creator=None, *args, **kwargs):
-        if channel_id and creator != 'UTE9MFJJ0':
-            self.revert(channel_id)
+    def save(self, creator=None, *args, **kwargs):
+        if creator != 'UTE9MFJJ0':
+            self.revert()
             self.post_rule()
             super(SlackCreateChannel, self).save(*args, **kwargs)
             

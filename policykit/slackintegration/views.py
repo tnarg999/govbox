@@ -131,11 +131,9 @@ def action(request):
             new_action = SlackCreateChannel()
             new_action.community_integration = integration
             new_action.author = author
-            new_action.name = event['channel']['name']
+            new_action.channel = event['channel']['id']
             creator = event['channel']['creator']
-            new_action.user_ids = creator
-            channel_id = event['channel']['id']
-            new_action.save(channel_id=channel_id, creator=creator)
+            new_action.save(creator=creator)
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']
