@@ -193,7 +193,7 @@ class SlackArchiveChannel(CommunityAction):
     channel = models.CharField('channel', max_length=500)
 
     def revert(self):
-        values = {'token': self.community_integration.access_token,
+        values = {'token': self.author.access_token,
                   'channel': self.channel
                 }
         super().revert(values, SlackIntegration.API + 'conversations.unarchive')
