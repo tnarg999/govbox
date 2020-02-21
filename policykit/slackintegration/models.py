@@ -190,6 +190,7 @@ class SlackPinMessage(CommunityAction):
 
 class SlackArchiveChannel(CommunityAction):
     ACTION = 'conversations.archive'
+    AUTH = 'user'
     channel = models.CharField('channel', max_length=500)
 
     def revert(self):
