@@ -13,7 +13,8 @@ SLACK_ACTIONS = ['slackpostmessage',
                  'slackkickconversation',
                  'slackjoinconversation',
                  'slackpinmessage',
-                 'slackcreatechannel'
+                 'slackcreatechannel',
+                 'slackarchivechannel'
                  ]
 
 class SlackIntegration(CommunityIntegration):
@@ -187,6 +188,29 @@ class SlackPinMessage(CommunityAction):
             self.post_rule()
             super(SlackPinMessage, self).save(*args, **kwargs)
 
+class SlackArchiveChannel(CommunityAction):
+    ACTION = 'conversations.archive'
+    channel = models.CharField('channel', max_length=500)
+
+    def revert(self):
+        values = {'token': self.community_integration.access_token,
+                  'channel': self.channel
+                }
+        super().revert(values, SlackIntegration.API + 'conversations.unarchive')
+
+    def post_rule(self):
+        values = {'channel': self.channel,
+                  'token': self.community_integration.access_token
+                  }
+        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+    
+    def save(self, user=None, *args, **kwargs):
+        if channel_id and user != 'UTE9MFJJ0':
+            self.revert()
+            self.post_rule()
+            super(SlackCreateChannel, self).save(*args, **kwargs)
+
+# TODO: Discuss what to do here
 class SlackCreateChannel(CommunityAction):
     ACTION = 'conversations.create'
     name = models.CharField('name', max_length=150)
