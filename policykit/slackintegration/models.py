@@ -199,7 +199,8 @@ class SlackArchiveChannel(CommunityAction):
         super().revert(values, SlackIntegration.API + 'conversations.unarchive')
 
     def post_rule(self):
-        values = {'channel': self.channel,
+        values = {'channel': 'CDD61K9V0', # two options: hard code general, which is what I have rn
+                                          # or post to unarchived channel as self.author
                   'token': self.community_integration.access_token
                   }
         super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
