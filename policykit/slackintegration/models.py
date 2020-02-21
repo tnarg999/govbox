@@ -207,7 +207,7 @@ class SlackArchiveChannel(CommunityAction):
         super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, user=None, *args, **kwargs):
-        if user != 'UTE9MFJJ0':
+        if user != 'UDD0ZNYMS': # only way to prevent infinite loop for now
             self.revert()
             self.post_rule()
             super(SlackArchiveChannel, self).save(*args, **kwargs)
