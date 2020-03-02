@@ -178,7 +178,7 @@ class SlackPinMessage(CommunityAPI):
             self.revert()
             self.post_policy()
             super(SlackPinMessage, self).save(*args, **kwargs)
-        if not user:
+        elif not user:
             super(SlackPinMessage, self).save(*args, **kwargs)
 
 class SlackArchiveChannel(CommunityAPI):

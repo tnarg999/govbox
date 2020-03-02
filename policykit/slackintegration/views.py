@@ -112,23 +112,18 @@ def action(request):
             new_action.channel = event['channel_id']
             new_action.timestamp = event['item']['message']['ts']
             user = event['user']
-            new_action.save(user=user)
-
         elif event.get('type') == 'channel_archive':
             new_action = SlackArchiveChannel()
             new_action.community_integration = integration
-            new_action.author = author
+            new_action.initiator = author
             new_action.channel = event['channel']
             user = event['user']
-            new_action.save(user=user)
-
         elif event.get('type') == 'channel_created':
             new_action = SlackCreateChannel()
             new_action.community_integration = integration
-            new_action.author = author
+            new_action.initiator = author
             new_action.channel = event['channel']['id']
             creator = event['channel']['creator']
-            new_action.save(creator=creator)
         
         if new_action:
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_action.community_integration):
