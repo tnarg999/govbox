@@ -57,7 +57,7 @@ class SlackPostMessage(CommunityAPI):
     
     def revert(self):
         if self.time_stamp and self.poster != 'UTE9MFJJ0':
-            values = {'token': self.initiator.access_token,
+            values = {'token': self.community_integration.access_token,
                       'ts': self.time_stamp,
                       'channel': self.channel
                     }
