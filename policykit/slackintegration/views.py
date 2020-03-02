@@ -7,14 +7,9 @@ from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
-<<<<<<< HEAD
 from slackintegration.models import *
-from policyengine.models import ActionPolicy, UserVote, CommunityAction
-=======
-from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
 from policyengine.models import CommunityAction, UserVote, CommunityAPI, CommunityPolicy, Proposal
 from policyengine.views import check_filter_code, check_policy_code
->>>>>>> 179557551240af5e687e0997b6ff826867d48675
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 
