@@ -181,7 +181,7 @@ class SlackPinMessage(CommunityAPI):
         if not user:
             super(SlackPinMessage, self).save(*args, **kwargs)
 
-class SlackArchiveChannel(CommunityAction):
+class SlackArchiveChannel(CommunityAPI):
     ACTION = 'conversations.archive'
     AUTH = 'user'
     channel = models.CharField('channel', max_length=500)
@@ -197,16 +197,16 @@ class SlackArchiveChannel(CommunityAction):
                                           # or post to unarchived channel as self.author
                   'token': self.community_integration.access_token
                   }
-        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, user=None, *args, **kwargs):
         if user != 'UDD0ZNYMS': # only way to prevent infinite loop for now
             self.revert()
-            self.post_rule()
+            self.post_policy()
             super(SlackArchiveChannel, self).save(*args, **kwargs)
 
 # TODO: Discuss what to do here
-class SlackCreateChannel(CommunityAction):
+class SlackCreateChannel(CommunityAPI):
     ACTION = 'conversations.unarchive'
     channel = models.CharField('channel', max_length=500)
 
@@ -222,12 +222,12 @@ class SlackCreateChannel(CommunityAction):
         values = {'channel': 'CDD61K9V0', # hard code general channel for now...
                   'token': self.community_integration.access_token
                   }
-        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, creator=None, *args, **kwargs):
         if creator != 'UTE9MFJJ0':
             self.revert()
-            self.post_rule()
+            self.post_policy()
             super(SlackCreateChannel, self).save(*args, **kwargs)
             
         
