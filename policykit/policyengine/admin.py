@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import CommunityIntegration, ProcessPolicy, RulePolicy, ActionPolicy, Policy, UserVote
+from policyengine.models import CommunityIntegration, ProcessPolicy, CommunityPolicy, CommunityAction, Proposal, UserVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -36,15 +36,15 @@ class PolicyAdminSite(AdminSite):
         user = request.user
         community_integration = user.community_integration
         
-        passed_processes = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
+        passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
 
-        passed_rules = RulePolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
+        passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
 
         context = {**self.each_context(request), 
                    'title': self.index_title, 
                    'app_list': app_list, 
-                   'passed_processes': passed_processes,
-                   'passed_rules': passed_rules,
+                   'passed_processes': passed_process_policies,
+                   'passed_rules': passed_community_policies,
                    **(extra_context or {})}
 
         request.current_app = self.name
@@ -56,31 +56,31 @@ admin_site = PolicyAdminSite(name="policyadmin")
 
 
 class ProcessAdmin(admin.ModelAdmin):
-    fields= ('process_code', 'explanation')
+    fields= ('policy_code', 'explanation')
     
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.author = request.user
+            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
+            obj.proposal = p
             obj.community_integration = request.user.community_integration
-            obj.status = Policy.PROPOSED
         obj.save()
 
 admin_site.register(ProcessPolicy, ProcessAdmin)
 
-class RuleAdmin(admin.ModelAdmin):
-    fields= ('rule_code', 'rule_text', 'explanation')
+class CommunityAdmin(admin.ModelAdmin):
+    fields= ('policy_filter_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation')
     
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.author = request.user
+            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
+            obj.proposal = p
             obj.community_integration = request.user.community_integration
-            obj.status = Policy.PROPOSED
         obj.save()
 
-admin_site.register(RulePolicy, RuleAdmin)
+admin_site.register(CommunityPolicy, CommunityAdmin)
 
 class UserVoteAdmin(admin.ModelAdmin):
-    fields= ('policy', 'value')
+    fields= ('proposal', 'boolean_value')
     
     def save_model(self, request, obj, form, change):
         if not change:

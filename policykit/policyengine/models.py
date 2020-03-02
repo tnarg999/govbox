@@ -5,7 +5,15 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import *
+from policyengine.views import execute_action, check_policy_code, check_filter_code
+import urllib
+import json
+
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 
 
 class CommunityIntegration(PolymorphicModel):
@@ -31,8 +39,8 @@ class CommunityUser(User, PolymorphicModel):
         
     def save(self, *args, **kwargs):      
         super(User, self).save(*args, **kwargs)
-        p1 = Permission.objects.get(name='Can add process')
-        p2 = Permission.objects.get(name='Can add rule')
+        p1 = Permission.objects.get(name='Can add processpolicy')
+        p2 = Permission.objects.get(name='Can add communitypolicy')
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
         
@@ -49,23 +57,25 @@ class CommunityUser(User, PolymorphicModel):
         return self.readable_name + '@' + self.community_integration.community_name
         
         
-        
-class CommunityAction(PolymorphicModel):
+class CommunityAPI(PolymorphicModel):
     ACTION = None
     AUTH = 'app'
     
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
     
-    author = models.ForeignKey(CommunityUser,
+    initiator = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
     
-    community_post_id = models.CharField('community_post_id', 
-                                         max_length=300)
+    community_post = models.CharField('community_post', 
+                                         max_length=300, null=True)
     
+    community_revert = models.BooleanField(default=False)
+    
+    community_origin = models.BooleanField(default=False)
     
     def api_call(self, values, call):
-        logger.info("COMMUNITY ACTION API CALL")
+        logger.info("COMMUNITY API CALL")
         logger.info(call)
         data = urllib.parse.urlencode(values)
         data = data.encode('utf-8')
@@ -73,55 +83,52 @@ class CommunityAction(PolymorphicModel):
         req = urllib.request.Request(call_info, data)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
-        logger.info("COMMUNITY ACTION API RESPONSE")
+        logger.info("COMMUNITY API RESPONSE")
         logger.info(res)
         return res
     
     def revert(self, values, call):
         _ = self.api_call(values, call)
+        self.community_revert = True
+        self.save()
         
-    def post_rule(self, values, call):
-        rule = RulePolicy.objects.filter(community_integration=self.community_integration,
-                                         status=Policy.PASSED)
+    def post_policy(self, values, call):
+        policy = CommunityPolicy.objects.filter(community_integration=self.community_integration,
+                                                proposal__status=Proposal.PASSED)
 
-        if rule.count() > 0:
-            rule = rule[0]
+        if policy.count() > 0:
+            policy = policy[0]
             # need more descriptive message
-            rules_message = "This action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
-            values['text'] = rules_message
+            policy_message = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+            values['text'] = policy_message
             res = self.api_call(values, call)
-            self.community_post_id = res['ts']         
+            self.community_post = res['ts']   
+            self.save()      
             
     def save(self, *args, **kwargs):
-        logger.info(self.community_post_id)
+        logger.info(self.community_post)
         
         if not self.pk:
             # Runs only when object is new
-            super(CommunityAction, self).save(*args, **kwargs)
-            action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
-                                                      author=self.author,
-                                                      status=Policy.PROPOSED,
-                                                      content_type=self.polymorphic_ctype,
-                                                      object_id=self.id,
-                                                      action=ActionPolicy.ADD,
-                                                      )
+            super(CommunityAPI, self).save(*args, **kwargs)
+            p = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
+            _ = CommunityAction.objects.create(community_integration=self.community_integration,
+                                               proposal=p,
+                                               api_action=self
+                                              )
 
-        else:   
-            super(CommunityAction, self).save(*args, **kwargs) 
+        else:
+            super(CommunityAPI, self).save(*args, **kwargs) 
         
         
-class Policy(PolymorphicModel):
-    community_integration = models.ForeignKey(CommunityIntegration, 
-        models.CASCADE,
-        verbose_name='community_integration',
-    )
+class Proposal(models.Model):
     
     author = models.ForeignKey(
         CommunityUser,
         models.CASCADE,
         verbose_name='author', 
         blank=True
-    )
+        )
     
     proposal_time = models.DateTimeField(auto_now_add=True)
     
@@ -136,60 +143,23 @@ class Policy(PolymorphicModel):
         ]
     
     status = models.CharField(choices=STATUS, max_length=10)
+
+       
+class BaseAction(models.Model):
+    community_integration = models.ForeignKey(CommunityIntegration, 
+        models.CASCADE,
+        verbose_name='community_integration',
+    )
     
-    
-class ProcessPolicy(Policy):    
-    process_code = models.TextField()
-    explanation = models.TextField(null=True, blank=True)
-    
-    # if this condition is met, then the RulePolicy status is set to passed
+    proposal = models.OneToOneField(Proposal,
+                                 models.CASCADE)
     
     class Meta:
-        verbose_name = 'process'
-        verbose_name_plural = 'processes'
+        abstract = True   
 
-        
-    def __str__(self):
-        return ' '.join(['Process: ', self.explanation, 'for', self.community_integration.community_name])
-    
-    
-    
-class RulePolicy(Policy):
-    rule_code = models.TextField(null=True, blank=True)
-    
-    rule_text = models.TextField(null=True, blank=True)
-    
-    explanation = models.TextField(null=True, blank=True)
-    
-    class Meta:
-        verbose_name = 'rule'
-        verbose_name_plural = 'rules'
-        
-    def clean(self):
-        super().clean()
-        if self.rule_code is None and self.rule_text is None:
-            raise ValidationError('Code or text rule instructions are both None')
 
-        
-    def __str__(self):
-        return ' '.join(['Rule: ', self.explanation, 'for', self.community_integration.community_name])
-    
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            # Runs only when object is new
-            process = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration)
-            self.status = Policy.PROPOSED
-            
-            super(RulePolicy, self).save(*args, **kwargs)
-            
-            if process.exists():
-                exec(process[0].process_code)
-
-        else:   
-            super(RulePolicy, self).save(*args, **kwargs)
-    
-    
-class ActionPolicy(Policy):
+class ProcessAction(BaseAction):
+     
     content_type = models.ForeignKey(
         ContentType,
         models.CASCADE,
@@ -198,54 +168,139 @@ class ActionPolicy(Policy):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     
-    ADD = 'add'
-    CHANGE = 'change'
-    VIEW = 'view'
-    DELETE = 'delete'
+    class Meta:
+        verbose_name = 'processaction'
+        verbose_name_plural = 'processactions'
+
+
+class CommunityAction(BaseAction):
     
-    ACTIONS = [
-            (ADD, 'add'),
-            (CHANGE, 'change'),
-            (VIEW, 'view'),
-            (DELETE, 'delete')
-        ]
-    
-    action = models.CharField(choices=ACTIONS, max_length=10)
-    
+    api_action = models.OneToOneField(CommunityAPI,
+                                      models.CASCADE)
     
     class Meta:
-        verbose_name = 'action'
-        verbose_name_plural = 'actions'
+        verbose_name = 'communityaction'
+        verbose_name_plural = 'communityactions'
 
     def __str__(self):
-        return ' '.join(['Action: ', self.action, str(self.content_type), 'to', self.community_integration.community_name])
+        return ' '.join(['Action: ', str(self.api_action), 'to', self.community_integration.community_name])
 
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            self.status = Policy.PROPOSED
+            self.proposal.status = Proposal.PROPOSED
             
-            super(ActionPolicy, self).save(*args, **kwargs)
+            super(CommunityAction, self).save(*args, **kwargs)
             
             action = self
-            for rule in RulePolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration):
-                exec(rule.rule_code)
+            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+                if check_filter_code(policy, action):
+                    cond_result = check_policy_code(policy, action)
+                    if cond_result == Proposal.PASSED:
+                        exec(policy.policy_action_code)
+                    elif cond_result == Proposal.FAILED:
+                        exec(policy.policy_failure_code)
 
         else:   
-            super(ActionPolicy, self).save(*args, **kwargs)
+            super(CommunityAction, self).save(*args, **kwargs)
         
+
+  
+class CommunityActionBundle(BaseAction):
+#      
+#     bundled_api_actions = models.ManyToManyField(CommunityAPI, 
+#                                      models.CASCADE, 
+#                                      verbose_name="bundled_api_actions")
+
+    class Meta:
+        verbose_name = 'communityactionbundle'
+        verbose_name_plural = 'communityactionbundles'
+    
+    
+
+class BasePolicy(models.Model):
+    community_integration = models.ForeignKey(CommunityIntegration, 
+        models.CASCADE,
+        verbose_name='community_integration',
+    )
+    
+    proposal = models.OneToOneField(Proposal,
+                                 models.CASCADE)
+    
+    explanation = models.TextField(null=True, blank=True)
+   
+    data_store = models.TextField()
+    
+    class Meta:
+        abstract = True
+    
+    
+class ProcessPolicy(BasePolicy):    
+    policy_code = models.TextField()
+    
+    class Meta:
+        verbose_name = 'processpolicy'
+        verbose_name_plural = 'processpolicies'
+
         
+    def __str__(self):
+        return ' '.join(['ProcessPolicy: ', self.explanation, 'for', self.community_integration.community_name])
+    
+    
+    
+class CommunityPolicy(BasePolicy):
+    policy_filter_code = models.TextField(null=True, blank=True)
+    policy_conditional_code = models.TextField(null=True, blank=True)
+    policy_action_code = models.TextField(null=True, blank=True)
+    policy_failure_code = models.TextField(null=True, blank=True)
+    
+    policy_text = models.TextField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'communitypolicy'
+        verbose_name_plural = 'communitypolicies'
+        
+    def clean(self):
+        super().clean()
+        if self.policy_action_code is None and self.policy_text is None:
+            raise ValidationError('Code or text rule instructions are both None')
+
+        
+    def __str__(self):
+        return ' '.join(['CommunityPolicy: ', self.explanation, 'for', self.community_integration.community_name])
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Runs only when object is new
+            process = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration)
+            p = self.proposal
+            p.status = Proposal.PROPOSED
+            p.save()
+            
+            super(CommunityPolicy, self).save(*args, **kwargs)
+            
+            if process.exists():
+                policy = self
+                exec(process[0].policy_code)
+
+        else:   
+            super(CommunityPolicy, self).save(*args, **kwargs)
+    
+
+# class VoteSystem(models.Model):
+#     
+#     class Meta:
+#         abstract = True  
+
 
 class UserVote(models.Model):
     
     user = models.ForeignKey(CommunityUser,
                               models.CASCADE)
     
-    policy = models.ForeignKey(Policy,
+    proposal = models.ForeignKey(Proposal,
                                 models.CASCADE)
     
-    value = models.BooleanField(null=True)
-    
-    
+    boolean_value = models.BooleanField(null=True) # yes/no, selected/not selected
     
     
