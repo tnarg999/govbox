@@ -57,7 +57,7 @@ class SlackPostMessage(CommunityAPI):
     
     def revert(self):
         if self.time_stamp and self.poster != 'UTE9MFJJ0':
-            values = {'token': self.community_integration.access_token,
+            values = {'token': self.initiator.access_token,
                       'ts': self.time_stamp,
                       'channel': self.channel
                     }
@@ -173,13 +173,13 @@ class SlackPinMessage(CommunityAPI):
                   }
         super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
     
-    def save(self, user=None, *args, **kwargs):
-        if self.timestamp and user != 'UTE9MFJJ0':
-            self.revert()
-            self.post_policy()
-            super(SlackPinMessage, self).save(*args, **kwargs)
-        elif not user:
-            super(SlackPinMessage, self).save(*args, **kwargs)
+    # def save(self, user=None, *args, **kwargs):
+    #     if self.timestamp and user != 'UTE9MFJJ0':
+    #         self.revert()
+    #         self.post_policy()
+    #         super(SlackPinMessage, self).save(*args, **kwargs)
+    #     elif not user:
+    #         super(SlackPinMessage, self).save(*args, **kwargs)
 
 class SlackArchiveChannel(CommunityAPI):
     ACTION = 'conversations.archive'
