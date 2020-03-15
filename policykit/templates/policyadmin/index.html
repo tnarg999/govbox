@@ -112,6 +112,10 @@
 			</tr>
 
             <script>
+                function escapeRegExp(string) {
+                  return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+                }
+
                 const codeTypes = {
                     'filter': `{{rule.policy_filter_code}}`, 
                     'init': `{{rule.policy_init_code}}`, 
@@ -127,7 +131,7 @@
                       lineNumbers: true,
                       readOnly: "nocursor"
                     });
-                    editor.setValue(codeTypes[type]);
+                    editor.setValue(escapeRegExp(codeTypes[type]));
                 }
             </script>
 			{% endfor %}
