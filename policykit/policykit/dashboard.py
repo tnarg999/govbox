@@ -92,18 +92,18 @@ class CustomIndexDashboard(Dashboard):
 
 
 
-class CustomAppIndexDashboard(AppIndexDashboard):
-    def init_with_context(self, context):
-        self.available_children.append(modules.LinkList)
+# class CustomAppIndexDashboard(AppIndexDashboard):
+#     def init_with_context(self, context):
+#         self.available_children.append(modules.LinkList)
 
-        self.children.append(modules.ModelList(
-            title=_('Application models'),
-            models=self.models(),
-            column=0,
-            order=0
-        ))
-        self.children.append(modules.RecentActions(
-            include_list=self.get_app_content_types(),
-            column=1,
-            order=0
-        ))
+#         self.children.append(modules.ModelList(
+#             title=_('Application models'),
+#             models=self.models(),
+#             column=0,
+#             order=0
+#         ))
+#         self.children.append(modules.RecentActions(
+#             include_list=self.get_app_content_types(),
+#             column=1,
+#             order=0
+#         ))
