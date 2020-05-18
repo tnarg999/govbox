@@ -203,6 +203,6 @@ CELERY_BEAT_SCHEDULE = {
 JET_DEFAULT_THEME = 'default'
 
 
-# JET_INDEX_DASHBOARD = 'policykit.dashboard.CustomIndexDashboard'
-# JET_APP_INDEX_DASHBOARD = 'policykit.dashboard.CustomAppIndexDashboard'
+JET_INDEX_DASHBOARD = 'policykit.dashboard.CustomIndexDashboard'
+JET_APP_INDEX_DASHBOARD = 'policykit.dashboard.CustomAppIndexDashboard'
 
