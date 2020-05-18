@@ -18,7 +18,7 @@ class CustomIndexDashboard(Dashboard):
 
     def init_with_context(self, context):
         
-        append an app list module for "Applications"
+        # append an app list module for "Applications"
         self.children.append(modules.AppList(
             _('Applications'),
             # exclude=('auth.*', 'CommunityActionBundle'),
