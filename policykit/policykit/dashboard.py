@@ -29,15 +29,15 @@ class CustomIndexDashboard(Dashboard):
         # ))
         
         
-        # self.children.append(PolicyModule(
-        #     policy_type="Process",
-        #     title="Passed Process Policies",
-        #     deletable=False,
-        #     contrast=True,
-        #     draggable=False,
-        #     column=1,
-        #     order=0,
-        # ))
+        self.children.append(PolicyModule(
+            policy_type="Process",
+            title="Passed Process Policies",
+            deletable=False,
+            contrast=True,
+            draggable=False,
+            column=1,
+            order=0,
+        ))
         
         # self.children.append(PolicyModule(
         #     policy_type="Community",
