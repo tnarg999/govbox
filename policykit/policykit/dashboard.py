@@ -21,7 +21,7 @@ class CustomIndexDashboard(Dashboard):
         # append an app list module for "Applications"
         self.children.append(modules.AppList(
             _('Applications'),
-            exclude=('auth.*', 'CommunityActionBundle'),
+            exclude=('auth.*', 'policyengine.CommunityActionBundle'),
             column=0,
             order=0,
             deletable=False,
