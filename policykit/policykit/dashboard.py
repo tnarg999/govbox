@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from jet.dashboard import modules
 from jet.dashboard.dashboard import Dashboard, AppIndexDashboard
+from jet.dashboard.models import UserDashboardModule
 from jet.utils import get_admin_site_name
 from policykit.dashboard_modules import PolicyModule, RolePermissionModule
 
