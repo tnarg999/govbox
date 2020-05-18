@@ -29,64 +29,64 @@ class CustomIndexDashboard(Dashboard):
         # ))
         
         
-        self.children.append(PolicyModule(
-            policy_type="Process",
-            title="Passed Process Policies",
-            deletable=False,
-            contrast=True,
-            draggable=False,
-            column=1,
-            order=0,
-        ))
+        # self.children.append(PolicyModule(
+        #     policy_type="Process",
+        #     title="Passed Process Policies",
+        #     deletable=False,
+        #     contrast=True,
+        #     draggable=False,
+        #     column=1,
+        #     order=0,
+        # ))
         
-        self.children.append(PolicyModule(
-            policy_type="Community",
-            title="Passed Community Policies",
-            deletable=False,
-            contrast=True,
-            draggable=False,
-            column=1,
-            order=2,
-        ))
+        # self.children.append(PolicyModule(
+        #     policy_type="Community",
+        #     title="Passed Community Policies",
+        #     deletable=False,
+        #     contrast=True,
+        #     draggable=False,
+        #     column=1,
+        #     order=2,
+        # ))
         
-        self.children.append(RolePermissionModule(
-            deletable=False,
-            contrast=True,
-            draggable=False,
-            column=2,
-            order=0,
-        ))
+        # self.children.append(RolePermissionModule(
+        #     deletable=False,
+        #     contrast=True,
+        #     draggable=False,
+        #     column=2,
+        #     order=0,
+        # ))
         
 
 
-        # append a recent actions module
-        self.children.append(modules.RecentActions(
-            _('Recent Actions'),
-            10,
-            column=2,
-            order=1,
-            deletable=False,
-            draggable=False,
-        ))
+        # # append a recent actions module
+        # self.children.append(modules.RecentActions(
+        #     _('Recent Actions'),
+        #     10,
+        #     column=2,
+        #     order=1,
+        #     deletable=False,
+        #     draggable=False,
+        # ))
         
         
-        site_name = get_admin_site_name(context)
-        # append a link list module for "quick links"
-        self.children.append(modules.LinkList(
-            _('Quick links'),
-            layout='inline',
-            draggable=False,
-            deletable=False,
-            collapsible=False,
-            children=[
-                [_('Return to site'), '/'],
-                [_('Change password'),
-                 reverse('%s:password_change' % site_name)],
-                [_('Log out'), reverse('%s:logout' % site_name)],
-            ],
-            column=2,
-            order=2
-        ))
+        # site_name = get_admin_site_name(context)
+        # # append a link list module for "quick links"
+        # self.children.append(modules.LinkList(
+        #     _('Quick links'),
+        #     layout='inline',
+        #     draggable=False,
+        #     deletable=False,
+        #     collapsible=False,
+        #     children=[
+        #         [_('Return to site'), '/'],
+        #         [_('Change password'),
+        #          reverse('%s:password_change' % site_name)],
+        #         [_('Log out'), reverse('%s:logout' % site_name)],
+        #     ],
+        #     column=2,
+        #     order=2
+        # ))
 
         
 
