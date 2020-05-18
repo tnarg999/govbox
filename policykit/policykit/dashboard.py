@@ -18,17 +18,16 @@ class CustomIndexDashboard(Dashboard):
 
     def init_with_context(self, context):
         
-        # append an app list module for "Applications"
-        # self.children.append(modules.AppList(
-        #     _('Applications'),
-        #     # exclude=('auth.*', 'CommunityActionBundle'),
-        #     models=('auth.*',),
-        #     column=0,
-        #     order=0,
-        #     deletable=False,
-        #     draggable=False,
-        # ))
-        
+        append an app list module for "Applications"
+        self.children.append(modules.AppList(
+            _('Applications'),
+            # exclude=('auth.*', 'CommunityActionBundle'),
+            models=('auth.*',),
+            column=0,
+            order=0,
+            deletable=False,
+            draggable=False,
+        ))
         
         self.children.append(PolicyModule(
             policy_type="Process",
@@ -40,35 +39,33 @@ class CustomIndexDashboard(Dashboard):
             order=0,
         ))
         
-        # self.children.append(PolicyModule(
-        #     policy_type="Community",
-        #     title="Passed Community Policies",
-        #     deletable=False,
-        #     contrast=True,
-        #     draggable=False,
-        #     column=1,
-        #     order=2,
-        # ))
+        self.children.append(PolicyModule(
+            policy_type="Community",
+            title="Passed Community Policies",
+            deletable=False,
+            contrast=True,
+            draggable=False,
+            column=1,
+            order=2,
+        ))
         
-        # self.children.append(RolePermissionModule(
-        #     deletable=False,
-        #     contrast=True,
-        #     draggable=False,
-        #     column=2,
-        #     order=0,
-        # ))
-        
+        self.children.append(RolePermissionModule(
+            deletable=False,
+            contrast=True,
+            draggable=False,
+            column=2,
+            order=0,
+        ))
 
-
-        # # append a recent actions module
-        # self.children.append(modules.RecentActions(
-        #     _('Recent Actions'),
-        #     10,
-        #     column=2,
-        #     order=1,
-        #     deletable=False,
-        #     draggable=False,
-        # ))
+        # append a recent actions module
+        self.children.append(modules.RecentActions(
+            _('Recent Actions'),
+            10,
+            column=2,
+            order=1,
+            deletable=False,
+            draggable=False,
+        ))
         
         
         site_name = get_admin_site_name(context)
