@@ -18,15 +18,15 @@ class CustomIndexDashboard(Dashboard):
     def init_with_context(self, context):
         
         # append an app list module for "Applications"
-        self.children.append(modules.AppList(
-            _('Applications'),
-            # exclude=('auth.*', 'CommunityActionBundle'),
-            models=('auth.*',),
-            column=0,
-            order=0,
-            deletable=False,
-            draggable=False,
-        ))
+        # self.children.append(modules.AppList(
+        #     _('Applications'),
+        #     # exclude=('auth.*', 'CommunityActionBundle'),
+        #     models=('auth.*',),
+        #     column=0,
+        #     order=0,
+        #     deletable=False,
+        #     draggable=False,
+        # ))
         
         
         self.children.append(PolicyModule(
